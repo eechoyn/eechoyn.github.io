@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UCSD Extension: HTML & JS</title>
+<style>
+    body{
+        font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        background-color: rgb(30, 29, 41);
+        padding: 50px;
+        color: rgb(244, 216, 33);
+    }
+    main{
+        display: flex;
+        flex-direction: row;
+    }
+    #input{
+        border: solid;
+        border-radius: 0.5em;
+        border-color:rgb(64, 63, 75);
+        padding: 15px;
+        max-width: 100%;
+        background-color: rgb(36, 35, 57);
+    }
+    #movieListShow{
+        border: solid;
+        border-radius: 0.5em;
+        border-color:rgb(64, 63, 75);
+        padding: 15px;
+        background-color: rgb(36, 35, 57);
+        width: 100%;
+        margin-left: 15px;
+        text-align: left;
+    }
+    table {
+        width: 100%;
+        font-size: larger;
+        line-height: 1.25em;
+    }
+    th{
+        border-bottom: solid;
+        border-color:rgb(64, 63, 75);
+        padding-left: 5px;
+    }
+    h3{
+        font-weight: 600;
+        line-height: 0.75em;
+    }
+    button{
+        color: rgb(244, 216, 33);
+        background-color: rgb(89, 78, 152);
+        font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        border: solid;
+        border-radius: 0.5em;
+        padding: 5px;
+        border-color:rgb(19, 18, 38);
+    }
+    input{
+        border: solid;
+        border-radius: 0.5em;
+        border-color:rgb(64, 63, 75);
+        background-color: rgb(134, 132, 146);
+    }
+    @media screen and (max-width:700px) {
+        main{
+            flex-direction: column;
+        }
+        #movieListShow{
+        margin-left: 0px;
+        margin-top: 15px;
+        width: 100%;
+    }
+    }
+</style>
+</head>
+<body>
+
+<h1 id="txt" style="line-height: 0.75em;">Movie Tracker</h1>
+
+<main>
+<div id="input">
+    <h3>Add a new movie: </h3>
+    <form id="addMovie"></form>
+        <label for="title">Title:</label><br>
+            <input type="text" id="title" placeholder="ex. Parasite"><br><br>
+        <label for="year">Year Released:</label><br>
+            <input type="text" id="year" placeholder="ex. 2019"><br><br>
+        <label for="director">Director:</label><br>
+            <input type="text" id="director" placeholder="ex. Bong Joon-ho"><br><br>
+        <label for="genre">Genre:</label><br>
+            <input type="text" id="genre" placeholder="ex. thriller/drama"><br><br>
+        
+        <p>Rating:</p>
+        <input type="radio" name="ratingBtn" id="r1" value="1"><label for="r1">☆</label><br>
+        <input type="radio" name="ratingBtn" id="r2" value="2"><label for="r2">☆☆</label><br>
+        <input type="radio" name="ratingBtn" id="r3" value="3"><label for="r3">☆☆☆</label><br>
+        <input type="radio" name="ratingBtn" id="r3" value="4"><label for="r4">☆☆☆☆</label><br>
+        <input type="radio" name="ratingBtn" id="r5" value="5"><label for="r5">☆☆☆☆☆</label><br>
+
+        <!-- <label for="commentary">Commentary:</label><br>
+            <input type="text" id="commentary" placeholder="ex. Great movie. First foreign-language film to win best picture"><br><br> -->
+         <br><button type="submit" id="submitBtn">Add Movie!</button>
+    </form>
+</div>
+
+<div id="movieListShow">
+    <table class="movieTable">
+        <thead>
+            <tr>
+                <th><h3 >Title</h3></th>
+                <th><h3>About</h3></th>
+                <th><h3>My Rating</h3></th>
+                <!-- <th></th> -->
+            </tr>
+        </thead>
+        <tbody id="movieList">
+        </tbody>
+    </table>
+    <p></p>
+</div>
+</main>
+ <script>
+     
+    class Movie{
+         constructor(title, year, director, genre, rating){
+             this.title=title; 
+             this.year=year; 
+             this.director=director; 
+             this.genre=genre; 
+             this.rating=rating+"/5 stars";
+         }
+        
+        getDescription(){
+            return this.title + " (" + this.year + ") is a " + this.genre + " film directed by " + this.director
+        }
+     }
+
+    class MovieTableList{
+        addMovieToTable(movie){
+            const table=document.getElementById("movieList");
+            var row=table.insertRow(0);
+                var cell1=row.insertCell(0);
+                var cell2=row.insertCell(1);
+                var cell3=row.insertCell(2);
+            cell1.innerHTML=movie.title;
+            cell2.innerHTML=movie.getDescription(); 
+            cell3.innerHTML=movie.rating; 
+            console.log(movie);
+        }
+
+        clearForm(){
+        document.getElementById('title').value = '';
+        document.getElementById('director').value = '';
+        document.getElementById('genre').value = '';
+        document.getElementById('year').value = '';
+        document.getElementsByClassName("ratingBtn").checked=false; 
+        }
+    }
+
+    document.getElementById("submitBtn").addEventListener("click",function(){
+        const title = document.getElementById("title").value; 
+        const year = document.getElementById("year").value; 
+        const director = document.getElementById('director').value; 
+        const genre = document.getElementById('genre').value; 
+        ratingSelect(); 
+
+        let movie = new Movie(title, year, director, genre, rating)
+            // console.log(movie);
+            // console.log(movie.getDescription());
+        let movieTableList = new MovieTableList(); 
+        if(title === " "|| year === " "|| director === " "||genre === " ") {
+            alert("Inputs cannot be empty!");
+        }
+        else {
+        movieTableList.addMovieToTable(movie); 
+        movieTableList.clearForm(); 
+        }
+  });
+    
+    function ratingSelect(){
+        const ratingArr = document.getElementsByName("ratingBtn"); 
+        for(var i=0;i<Number(ratingArr.length);i++){
+            if(ratingArr[i].checked){
+                rating = ratingArr[i].value;
+            }
+        }
+    }
+
+    // let movie = new Movie("Parasite","2019","Bong Joon-ho","thriller/drama","4");
+    // console.log(movie);
+    // console.log(movie.getDescription());
+
+    </script>
+</body>
+</html>
