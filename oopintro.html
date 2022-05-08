@@ -22,17 +22,22 @@
         border-color:rgb(64, 63, 75);
         padding: 15px;
         max-width: 100%;
+        /* background-color: rgb(36, 34, 71); */
         background-color: rgb(36, 35, 57);
     }
     #movieListShow{
         border: solid;
         border-radius: 0.5em;
-        border-color:rgb(64, 63, 75);
+        /* border-color:rgb(64, 63, 75); */
         padding: 15px;
-        background-color: rgb(36, 35, 57);
+        /* background-color: rgb(36, 35, 57); */
         width: 100%;
         margin-left: 15px;
         text-align: left;
+
+        color: rgb(145, 120, 4); 
+        background-color: rgb(30, 29, 41);
+        border-color:rgb(48, 47, 56);
     }
     table {
         width: 100%;
@@ -63,6 +68,9 @@
         border-color:rgb(64, 63, 75);
         background-color: rgb(134, 132, 146);
     }
+    #inProgress{
+        color: rgb(134, 132, 146); 
+    }
     @media screen and (max-width:700px) {
         main{
             flex-direction: column;
@@ -82,6 +90,7 @@
 <main>
 <div id="input">
     <h3>Add a new movie: </h3>
+    <div id="addMovieArea">
     <form id="addMovie"></form>
         <label for="title">Title:</label><br>
             <input type="text" id="title" placeholder="ex. Parasite"><br><br>
@@ -103,10 +112,11 @@
             <input type="text" id="commentary" placeholder="ex. Great movie. First foreign-language film to win best picture"><br><br> -->
          <br><button type="submit" id="submitBtn">Add Movie!</button>
     </form>
+    </div>  
 </div>
 
 <div id="movieListShow">
-    <table class="movieTable">
+    <table class="movieTable" id="movieTable">
         <thead>
             <tr>
                 <th><h3 >Title</h3></th>
@@ -119,9 +129,23 @@
         </tbody>
     </table>
     <p></p>
+    <p id="inProgress"></p>
 </div>
 </main>
  <script>
+
+    document.getElementById("input").addEventListener("mouseover",inputSelectColor);
+    document.getElementById("input").addEventListener("mouseout",inputSelectColor);
+   
+    function inputSelectColor(e){
+        if(e.type=="mouseover"){
+            document.getElementById("input").style.backgroundColor="rgb(36, 34, 67)";
+        } 
+        if(e.type=="mouseout"){
+            document.getElementById("input").style.backgroundColor="rgb(36, 35, 57)";
+        } 
+    }; 
+
      
     class Movie{
          constructor(title, year, director, genre, rating){
@@ -158,6 +182,33 @@
         document.getElementsByClassName("ratingBtn").checked=false; 
         }
     }
+    
+    function ratingSelect(){
+        const ratingArr = document.getElementsByName("ratingBtn"); 
+        for(var i=0;i<Number(ratingArr.length);i++){
+            if(ratingArr[i].checked){
+                rating = ratingArr[i].value;
+                ratingArr[i].checked=false; 
+            }
+        }
+    }
+
+    function movieTableStatus(){
+            console.log(document.querySelectorAll("#movieTable tr").length)
+        if(document.querySelectorAll("#movieTable tr").length > 1){
+            var tableStyle=document.getElementById("movieListShow"); 
+            tableStyle.style.color="rgb(244, 216, 33)";
+            tableStyle.style.borderColor="rgb(64, 63, 75)";
+            tableStyle.style.backgroundColor="rgb(36, 35, 57)";
+        }
+    }
+
+    function showAddingMovie(e){
+            console.log(e.target.value); 
+            document.getElementById("inProgress").innerHTML="Entering a new movie: " + e.target.value;
+        }
+
+    document.getElementById("title").addEventListener("keydown", showAddingMovie); 
 
     document.getElementById("submitBtn").addEventListener("click",function(){
         const title = document.getElementById("title").value; 
@@ -175,18 +226,24 @@
         }
         else {
         movieTableList.addMovieToTable(movie); 
+        // movieTableList.showAddingMovie();
         movieTableList.clearForm(); 
         }
+        document.getElementById("inProgress").innerHTML=" ";
+        movieTableStatus()
   });
-    
-    function ratingSelect(){
-        const ratingArr = document.getElementsByName("ratingBtn"); 
-        for(var i=0;i<Number(ratingArr.length);i++){
-            if(ratingArr[i].checked){
-                rating = ratingArr[i].value;
-            }
-        }
-    }
+
+    document.getElementById("movieListShow").addEventListener("mouseover",listSelectColor);
+    document.getElementById("movieListShow").addEventListener("mouseout",listSelectColor);
+   
+    function listSelectColor(e){
+        if(e.type=="mouseover"){
+            document.getElementById("movieListShow").style.backgroundColor="rgb(36, 34, 67)";
+        } 
+        if(e.type=="mouseout"){
+            document.getElementById("movieListShow").style.backgroundColor="rgb(36, 35, 57)";
+        } 
+    }; 
 
     // let movie = new Movie("Parasite","2019","Bong Joon-ho","thriller/drama","4");
     // console.log(movie);
