@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pong Game JavaScript</title>
+    <style>
+        body{
+            background-color: rgb(103, 56, 56);
+        }
+        #pong{
+            border: 2px solid rgb(249, 248, 236);
+            position: absolute;
+            margin :auto;
+            top:0;
+            right:0;
+            left:0;
+            bottom:0;
+        }
+        /* canvas{
+            background-color: rgb(54, 56, 102);
+        } */
+        canvas{
+            background: linear-gradient(270deg, #1a5345, #396778, #2f3763);
+            background-size: 600% 600%;
+            -webkit-animation: bgcolorchange 20s ease infinite;
+            -moz-animation: bgcolorchange 20s ease infinite;
+            animation: bgcolorchange s ease infinite;
+        }
+        @-webkit-keyframes bgcolorchange {
+            0%{background-position:0% 50%}
+            50%{background-position:100% 50%}
+            100%{background-position:0% 50%}
+        }
+        @-moz-keyframes bgcolorchange {
+            0%{background-position:0% 50%}
+            50%{background-position:100% 50%}
+            100%{background-position:0% 50%}
+        }
+        @keyframes bgcolorchange {
+            0%{background-position:0% 50%}
+            50%{background-position:100% 50%}
+            100%{background-position:0% 50%}
+        }
+        button{
+            margin: auto; 
+            margin-top:50px; 
+            padding: 10px; 
+            /* background-color: rgb(54, 56, 102); */
+            color: rgb(249, 248, 236);
+            font-size: 18px; 
+            border: 2px solid rgb(249, 248, 236);
+            border-radius: 0.5em; 
+            background: linear-gradient(270deg, #1a5345, #396778, #2f3763);
+            background-size: 600% 600%;
+            -webkit-animation: bgcolorchange 20s ease infinite;
+            -moz-animation: bgcolorchange 20s ease infinite;
+            animation: bgcolorchange s ease infinite;
+        }
+        #startArea{
+            display: flex; 
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="startArea">
+    <button id="startBtn">Start Game</button>
+    <p id="scoreArea"></p>
+    </div>
+   <canvas id="pong" width="600" height="400"></canvas>
+   
+<script>// select canvas element
+    const canvas = document.getElementById("pong");
+    
+    // getContext of canvas = methods and properties to draw and do a lot of thing to the canvas
+    const ctx = canvas.getContext('2d');
+    
+    // load sounds
+    let hit = new Audio();
+    let wall = new Audio();
+    let userScore = new Audio();
+    let comScore = new Audio();
+    
+    hit.src = "sounds/hit.mp3";
+    wall.src = "sounds/wall.mp3";
+    comScore.src = "sounds/comScore.mp3";
+    userScore.src = "sounds/userScore.mp3";
+    
+    // Ball object
+    const ball = {
+        x : canvas.width/2,
+        y : canvas.height/2,
+        radius : 15,
+        velocityX : 5,
+        velocityY : 5,
+        speed : 7,
+        color : "rgba(249, 248, 236, 1)"
+    }
+    
+    // User Paddle
+    const user = {
+        x : 0, // left side of canvas
+        y : (canvas.height - 100)/2, // -100 the height of paddle
+        width : 10,
+        height : 100,
+        score : 0,
+        color : "rgb(180, 167, 147)"
+    }
+    
+    // COM Paddle
+    const com = {
+        x : canvas.width - 10, // - width of paddle
+        y : (canvas.height - 100)/2, // -100 the height of paddle
+        width : 10,
+        height : 100,
+        score : 0,
+        color : "rgb(180, 167, 147)"
+    }
+    
+    // NET
+    const net = {
+        x : (canvas.width - 2)/2,
+        y : 0,
+        height : 10,
+        width : 2,
+        color : "rgb(249, 248, 236)"
+    }
+    
+    // draw a rectangle, will be used to draw paddles
+    function drawRect(x, y, w, h, color){
+        ctx.fillStyle = color;
+        ctx.fillRect(x, y, w, h);
+    }
+    
+    // draw circle, will be used to draw the ball
+    function drawArc(x, y, r, color){
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x,y,r,0,Math.PI*2,true);
+        ctx.closePath();
+        ctx.fill();
+    }
+    
+    // listening to the mouse
+    canvas.addEventListener("mousemove", getMousePos);
+    
+    function getMousePos(evt){
+        let rect = canvas.getBoundingClientRect();
+        
+        user.y = evt.clientY - rect.top - user.height/2;
+    }
+    
+    // when COM or USER scores, we reset the ball
+    function resetBall(){
+        ball.x = canvas.width/2;
+        ball.y = canvas.height/2;
+        ball.velocityX = -ball.velocityX;
+        ball.speed = 7;
+        ball.color="rgba(249, 248, 236, 1)"
+    }
+    
+    // draw the net
+    function drawNet(){
+        for(let i = 0; i <= canvas.height; i+=15){
+            drawRect(net.x, net.y + i, net.width, net.height, net.color);
+        }
+    }
+    
+    // draw text
+    function drawText(text,x,y){
+        ctx.fillStyle = "rgba(146, 148, 183,0.5)";
+        ctx.font = "200px arial";
+        ctx.fillText(text, x, y);
+    }
+    
+    // collision detection
+    function collision(b,p){
+        p.top = p.y;
+        p.bottom = p.y + p.height;
+        p.left = p.x;
+        p.right = p.x + p.width;
+        
+        b.top = b.y - b.radius;
+        b.bottom = b.y + b.radius;
+        b.left = b.x - b.radius;
+        b.right = b.x + b.radius;
+        
+        return p.left < b.right && p.top < b.bottom && p.right > b.left && p.bottom > b.top;
+    }
+    
+    const iceBar = {
+        x : 60,
+        y : 0,
+        height : 5,
+        width : 150,
+        color : "rgb(160, 219, 244)"
+    }
+    const fireBar = {
+        x : canvas.width-200,
+        y : canvas.height-5,
+        height : 5,
+        width : 150,
+        color : "rgb(245, 90, 59)"
+    }
+    
+    // update function, the function that does all calculations
+    function update(){
+        
+        // change the score of players, if the ball goes to the left "ball.x<0" computer win, else if "ball.x > canvas.width" the user win
+        if( ball.x - ball.radius < 0 ){
+            com.score++;
+            comScore.play();
+            resetBall();
+        }else if( ball.x + ball.radius > canvas.width){
+            user.score++;
+            userScore.play();
+            resetBall();
+        }
+        
+        // the ball has a velocity
+        ball.x += ball.velocityX;
+        ball.y += ball.velocityY;
+        
+        // computer plays for itself, and we must be able to beat it
+        // simple AI
+        com.y += ((ball.y - (com.y + com.height/2)))*0.1;
+        
+        // when the ball collides with bottom and top walls we inverse the y velocity.
+        if(ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height){
+            ball.velocityY = -ball.velocityY;
+            wall.play();
+        }
+        
+        // if(ball.x>canvas.width/2){
+        //     ball.raidus=Math.floor(Math.random()*15)+1; 
+        // }
+
+        // we check if the paddle hit the user or the com paddle
+        let player = (ball.x + ball.radius < canvas.width/2) ? user : com;
+        
+        var aColor = 1
+        // if the ball hits a paddle
+        if(collision(ball,player)){
+            // play sound
+            hit.play();
+            // we check where the ball hits the paddle
+            let collidePoint = (ball.y - (player.y + player.height/2));
+            // normalize the value of collidePoint, we need to get numbers between -1 and 1.
+            // -player.height/2 < collide Point < player.height/2
+            collidePoint = collidePoint / (player.height/2);
+            
+            // when the ball hits the top of a paddle we want the ball, to take a -45degees angle
+            // when the ball hits the center of the paddle we want the ball to take a 0degrees angle
+            // when the ball hits the bottom of the paddle we want the ball to take a 45degrees
+            // Math.PI/4 = 45degrees
+            let angleRad = (Math.PI/4) * collidePoint;
+            
+            // change the X and Y velocity direction
+            let direction = (ball.x + ball.radius < canvas.width/2) ? 1 : -1;
+            ball.velocityX = direction * ball.speed * Math.cos(angleRad);
+            ball.velocityY = ball.speed * Math.sin(angleRad);
+            
+            // speed up the ball everytime a paddle hits it.
+            ball.speed += 0.15;
+
+            aColor=aColor-0.05;
+            ball.color="rgba(249, 248, 236,"+aColor+")"
+
+            ball.radius=Math.floor(Math.random()*14)+3; 
+        }
+
+        if(collision(ball,iceBar)){
+            ball.color="rgb(160, 219, 244)"
+            ball.speed += 0.1;
+            ball.velocityY = Math.sin(ball.velocityY)*10;
+            ball.velocityX = Math.sin(ball.velocityX)*10;
+        }
+        if(collision(ball,fireBar)){
+            ball.color="rgb(245, 90, 59)"
+            ball.speed += 0.2;
+            ball.velocityY = Math.cos(ball.velocityY)*10;
+            ball.velocityX = Math.cos(ball.velocityX)*10;
+        }
+    }
+    var iceX= iceBar.x
+    var fireX= fireBar.x
+    var iceDX = 0.5; 
+    var fireDX = 0.5; 
+
+    // render function, the function that does all the drawing
+    function render(){
+        
+        // clear the canvas
+        drawRect(0, 0, canvas.width, canvas.height, "rgb(54, 56, 102)");
+        
+        // draw the user score to the left
+        
+        if(user.score<10){
+            drawText(user.score,(canvas.width/4)-50,50+(canvas.height/2));
+        }
+        else{
+            drawText(user.score,(canvas.width/4)-110,50+(canvas.height/2));
+        }
+        // draw the COM score to the right
+        if(com.score<10){
+            drawText(com.score,(3*canvas.width/4)-50,50+(canvas.height/2));
+        }
+        else{
+            drawText(com.score,(3*canvas.width/4)-110,50+(canvas.height/2));
+        }
+        // draw the net
+        drawNet();
+        
+        // draw the user's paddle
+        drawRect(user.x, user.y, user.width, user.height, user.color);
+        
+        // draw the COM's paddle
+        drawRect(com.x, com.y, com.width, com.height, com.color);
+        
+        // draw the ball
+        drawArc(ball.x, ball.y, ball.radius, ball.color);
+
+        drawRect(iceX, iceBar.y, iceBar.width, iceBar.height, iceBar.color)
+        drawRect(fireX, fireBar.y, fireBar.width, fireBar.height, fireBar.color)
+        if(iceX+iceBar.width>canvas.width||iceX==0){
+            iceDX=-iceDX
+        }
+        if(fireX+fireBar.width>canvas.width||fireX==0){
+            fireDX=-fireDX
+        }
+        iceX+=iceDX; 
+        fireX+=fireDX; 
+
+        iceBar.x=iceX; 
+        fireBar.x=fireX; 
+    }
+    function game(){
+        update();
+        render();
+    }
+    
+    // number of frames per second
+    let framePerSecond = 50;
+    
+    startBtn.addEventListener("click",function(){
+        let loop = setInterval(game,1000/framePerSecond);
+        document.getElementById("startBtn").style.display="none"; 
+    })
+
+    // call the game function 50 times every 1 Sec
+    // let loop = setInterval(game,1000/framePerSecond);
+    
+</script>
+</body>
+</html>
